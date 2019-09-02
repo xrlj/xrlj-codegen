@@ -20,7 +20,7 @@ public interface Constants {
 
         String projectName = "service-auth";
         String projectPackage = "com.xrlj.serviceauth";
-        String apiModuleName = Constants.getModuleName(projectName, "api");
+        String apiModuleName = getModuleName(projectName, "api");
         String providerModuleName = getModuleName(projectName, "provider");
     }
 
@@ -28,7 +28,7 @@ public interface Constants {
 
         String projectName = "service-sys-notify";
         String projectPackage = "com.xrlj.servicesysnotify";
-        String apiModuleName = Constants.getModuleName(projectName, "api");
+        String apiModuleName = getModuleName(projectName, "api");
         String providerModuleName = getModuleName(projectName, "provider");
     }
 
@@ -36,8 +36,8 @@ public interface Constants {
 
         String projectName = "service-sys-filesystem";
         String projectPackage = "com.xrlj.servicesysfilesystem";
-        String apiModuleName = Constants.getModuleName(projectName, "api");
-        String entitiesModuleName = Constants.getModuleName(projectName, "entities");
+        String apiModuleName = getModuleName(projectName, "api");
+        String entitiesModuleName = getModuleName(projectName, "entities");
         String providerModuleName = getModuleName(projectName, "provider");
 
         String DRIVER = "com.mysql.cj.jdbc.Driver";
@@ -64,7 +64,7 @@ public interface Constants {
 
         String projectName = "service-sys-offdct";
         String projectPackage = "com.xrlj.servicesysoffdct";
-        String apiModuleName = Constants.getModuleName(projectName, "api");
+        String apiModuleName = getModuleName(projectName, "api");
         String providerModuleName = getModuleName(projectName, "provider");
     }
 
