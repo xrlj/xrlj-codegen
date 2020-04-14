@@ -29,7 +29,12 @@ public interface Constants {
         String projectName = "service-sys-notify";
         String projectPackage = "com.xrlj.servicesysnotify";
         String apiModuleName = getModuleName(projectName, "api");
+        String entitiesModuleName = getModuleName(projectName, "entities");
         String providerModuleName = getModuleName(projectName, "provider");
+        String DRIVER = "com.mysql.cj.jdbc.Driver";
+        String URL = "jdbc:mysql://172.31.31.31:3910/service_notify?useUnicode=true&characterEncoding=utf8";
+        String USERNAME = "root";
+        String PASSWORD = "123456";
     }
 
     interface ServiceSysFilesystem {
