@@ -1,7 +1,7 @@
 package com.xrlj.codegen.servicesyscommon;
 
 import com.xrlj.codegen.Constants;
-import com.xrlj.framework.core.processor.AbstractGenDaoProcessor;
+import com.xrlj.codegen.processor.AbstractGenDaoProcessor;
 
 public class GenDaoProcessor extends AbstractGenDaoProcessor {
 

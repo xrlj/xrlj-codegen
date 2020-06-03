@@ -1,7 +1,7 @@
 package com.xrlj.codegen.serviceusercentral;
 
 import com.xrlj.codegen.Constants.ServiceUsercentral;
-import com.xrlj.framework.core.processor.GenDBField2BeanProcessor;
+import com.xrlj.codegen.processor.GenDBField2BeanProcessor;
 import com.xrlj.utils.PrintUtil;
 
 import java.sql.Connection;

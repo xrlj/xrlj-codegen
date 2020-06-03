@@ -1,7 +1,7 @@
 package com.xrlj.codegen.servicesysnotify;
 
 import com.xrlj.codegen.Constants.ServiceSysNotify;
-import com.xrlj.framework.core.processor.GenDBField2BeanProcessor;
+import com.xrlj.codegen.processor.GenDBField2BeanProcessor;
 import com.xrlj.utils.PrintUtil;
 
 import java.sql.Connection;

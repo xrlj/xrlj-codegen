@@ -46,7 +46,7 @@ public interface Constants {
         String providerModuleName = getModuleName(projectName, "provider");
 
         String DRIVER = "com.mysql.cj.jdbc.Driver";
-        String URL = "jdbc:mysql://192.168.1.110:3910/service_filesystem?useUnicode=true&characterEncoding=utf8";
+        String URL = "jdbc:mysql://192.168.0.3:3910/service_filesystem?useUnicode=true&characterEncoding=utf8";
         String USERNAME = "root";
         String PASSWORD = "123456";
     }

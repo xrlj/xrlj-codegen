@@ -1,7 +1,7 @@
 package com.xrlj.codegen.servicesyscommon;
 
 import com.xrlj.codegen.Constants;
-import com.xrlj.framework.core.processor.AbstractGenApiImplProcessor;
+import com.xrlj.codegen.processor.AbstractGenApiImplProcessor;
 
 public class GenControllerProcessor extends AbstractGenApiImplProcessor {
 
