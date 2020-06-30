@@ -2,6 +2,13 @@ package com.xrlj.codegen;
 
 public interface Constants {
 
+    String URL_PREFIX = "jdbc:mysql://192.168.0.3:3910/";
+    String URL_SUFFIX = "?useUnicode=true&characterEncoding=utf8";
+
+    static  String db_url(String tableName) {
+        return URL_PREFIX.concat(tableName).concat(URL_SUFFIX);
+    }
+
     interface Servicesyscommon {
 
         String projectName = "service-sys-common";
@@ -11,7 +18,7 @@ public interface Constants {
         String providerModuleName = getModuleName(projectName, "provider");
 
         String DRIVER = "com.mysql.cj.jdbc.Driver";
-        String URL = "jdbc:mysql://192.168.1.110:3910/service_sys_common?useUnicode=true&characterEncoding=utf8";
+        String URL = Constants.db_url("service_common");
         String USERNAME = "root";
         String PASSWORD = "123456";
     }
@@ -32,7 +39,7 @@ public interface Constants {
         String entitiesModuleName = getModuleName(projectName, "entities");
         String providerModuleName = getModuleName(projectName, "provider");
         String DRIVER = "com.mysql.cj.jdbc.Driver";
-        String URL = "jdbc:mysql://192.168.1.110:3910/service_notify?useUnicode=true&characterEncoding=utf8";
+        String URL = db_url("service_notify");
         String USERNAME = "root";
         String PASSWORD = "123456";
     }
@@ -46,7 +53,7 @@ public interface Constants {
         String providerModuleName = getModuleName(projectName, "provider");
 
         String DRIVER = "com.mysql.cj.jdbc.Driver";
-        String URL = "jdbc:mysql://192.168.0.3:3910/service_filesystem?useUnicode=true&characterEncoding=utf8";
+        String URL = db_url("service_filesystem");
         String USERNAME = "root";
         String PASSWORD = "123456";
     }
@@ -60,7 +67,7 @@ public interface Constants {
         String providerModuleName = getModuleName(projectName, "provider");
 
         String DRIVER = "com.mysql.cj.jdbc.Driver";
-        String URL = "jdbc:mysql://192.168.1.110:3910/service_usercentral?useUnicode=true&characterEncoding=utf8";
+        String URL = db_url("service_usercentral");
         String USERNAME = "root";
         String PASSWORD = "123456";
     }
