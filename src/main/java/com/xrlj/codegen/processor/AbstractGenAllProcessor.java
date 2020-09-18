@@ -5,18 +5,16 @@ import com.xrlj.framework.base.BaseController;
 import com.xrlj.framework.base.BaseService;
 import com.xrlj.framework.base.BaseServiceImpl;
 import com.xrlj.framework.core.annotation.GenAllAnnotation;
-import com.xrlj.framework.core.annotation.GenDaoAnnotation;
 import com.xrlj.framework.dao.base.BaseDao;
 import com.xrlj.framework.dao.base.BaseDaoImpl;
 import com.xrlj.framework.dao.base.BaseMapper;
 import com.xrlj.framework.dao.base.BaseRepository;
 import com.xrlj.utils.StringUtil;
-import com.xrlj.utils.TableEntityMapperUtil;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -26,6 +24,8 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -254,24 +254,54 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
         ParameterizedTypeName ptn2 = ParameterizedTypeName.get(superJpa, entityClazzName);
 
         String repositoryName = clazzName.concat("Repository"); //jpa repository类名称
-        TypeSpec jpayRepository = TypeSpec.interfaceBuilder(repositoryName)
-                .addSuperinterface(ptn1)
-                .addSuperinterface(ptn2)
-                .addModifiers(Modifier.PUBLIC)
-                .addJavadoc("增、删、改、简单单表查询")
-                .build();
-
         String repositoryPackagePath = daoPackage.concat(".repository");//jpa repository所在包
-        JavaFile javaFile = JavaFile.builder(repositoryPackagePath, jpayRepository)
-                .addFileComment("JPA操作表")
-                .build();
 
         boolean b = GenCodeUtils.containsJavaFile(providerOutputDir, repositoryPackagePath, repositoryName);
         if (!b) { //不存在，生成代码
-            javaFile.writeTo(System.out); //输出到控制台
-            File file = new File(providerOutputDir); //输出到文件
-            javaFile.writeTo(file);
+            TypeSpec jpaRepository = TypeSpec.interfaceBuilder(repositoryName)
+                    .addSuperinterface(ptn1)
+                    .addSuperinterface(ptn2)
+                    .addModifiers(Modifier.PUBLIC)
+                    .addJavadoc("增、删、改、简单单表查询")
+                    .build();
+            outputJavaFileToPackage(repositoryPackagePath, jpaRepository, "JPA操作表");
         }
+
+        //////////// 生成 repositoryCustom repositoryImpl
+        String repositoryCustomName = repositoryName.concat("Custom"); //jpa repositoryCustom类名称
+        boolean b1 = GenCodeUtils.containsJavaFile(providerOutputDir, repositoryPackagePath, repositoryCustomName);
+        if (!b1) {
+            TypeSpec jpaRepositoryCustom = TypeSpec.interfaceBuilder(repositoryCustomName)
+                    .addModifiers(Modifier.PUBLIC)
+                    .addJavadoc("自定义jpa复杂操作接口类")
+                    .build();
+            outputJavaFileToPackage(repositoryPackagePath, jpaRepositoryCustom, "在这里定义jpa复杂操作接口并实现。");
+        }
+
+        String repositoryCustomImplName = repositoryName.concat("Impl"); //jpa repositoryImpl类名称
+        boolean b12 = GenCodeUtils.containsJavaFile(providerOutputDir, repositoryPackagePath, repositoryCustomImplName);
+        if (!b12) {
+            ClassName repositoryCustomInterface = ClassName.get(repositoryPackagePath, repositoryCustomName); // 接口
+
+            // 成员变量引入
+            //注解
+            AnnotationSpec autowired = AnnotationSpec.builder(Autowired.class).build();
+            AnnotationSpec persistenceContext = AnnotationSpec.builder(PersistenceContext.class).addMember("unitName", "$S", "myself_db").build();
+            FieldSpec fieldSpec = FieldSpec.builder(EntityManager.class, "entityManager")
+                    .addAnnotation(autowired)
+                    .addAnnotation(persistenceContext)
+                    .addModifiers(Modifier.PRIVATE)
+                    .build();
+            TypeSpec jpaRepositoryCustomImpl = TypeSpec.classBuilder(repositoryCustomImplName)
+                    .addSuperinterface(repositoryCustomInterface)
+                    .addField(fieldSpec)
+                    .addModifiers(Modifier.PUBLIC)
+                    .addJavadoc("实现类")
+                    .build();
+            outputJavaFileToPackage(repositoryPackagePath, jpaRepositoryCustomImpl, "");
+        }
+
+
         //==============生成 jpa Repository end
 
         //===========生成 MyBatis mapper start
@@ -279,22 +309,16 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
         ParameterizedTypeName ptn = ParameterizedTypeName.get(superMapperClass, entityClazzName, idClazzName);
 
         String mapperName = clazzName.concat("Mapper"); //MyBatis mapper类名称
-        TypeSpec mapperTypeSpec = TypeSpec.interfaceBuilder(mapperName)
-                .addSuperinterface(ptn) //父类
-                .addModifiers(Modifier.PUBLIC)
-                .addJavadoc("简单、复杂查询皆可。复杂查询在xml文件中配置。")
-                .build();
-
         String mapperPackagePath = daoPackage.concat(".mapper");//MyBatis mapper所在包
-        JavaFile mapperJavaFile = JavaFile.builder(mapperPackagePath, mapperTypeSpec)
-                .addFileComment("MyBatis操作表")
-                .build();
 
         boolean mb = GenCodeUtils.containsJavaFile(providerOutputDir, mapperPackagePath, mapperName);
         if (!mb) { //不存在，生成代码
-            mapperJavaFile.writeTo(System.out); //输出到控制台
-            File file = new File(providerOutputDir); //输出到文件
-            mapperJavaFile.writeTo(file);
+            TypeSpec mapperTypeSpec = TypeSpec.interfaceBuilder(mapperName)
+                    .addSuperinterface(ptn) //父类
+                    .addModifiers(Modifier.PUBLIC)
+                    .addJavadoc("简单、复杂查询皆可。复杂查询在xml文件中配置。")
+                    .build();
+            outputJavaFileToPackage(mapperPackagePath, mapperTypeSpec, "MyBatis操作表");
         }
         //生成*Mapper.xml文件
         String mapperXmlPath = FileUtils.getFile(providerOutputDir).getParent().concat(File.separator).concat("resources").concat(File.separator).concat("mapper");
@@ -317,22 +341,17 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
         ClassName clazzRepository = ClassName.get(repositoryPackagePath, repositoryName);
         ClassName clazzMapper = ClassName.get(mapperPackagePath, mapperName);
         ParameterizedTypeName ptn3 = ParameterizedTypeName.get(baseDao, clazzRepository, clazzMapper, entityClazzName);
+
         String daoName = clazzName.concat("Dao");
-        TypeSpec dao = TypeSpec.interfaceBuilder(daoName)
-                .addSuperinterface(ptn3)
-                .addModifiers(Modifier.PUBLIC)
-                .addJavadoc("JDBC,JOOQ操作表")
-                .build();
 
-        JavaFile daoJavaFile = JavaFile.builder(daoPackage, dao)
-                .addFileComment("数据库操作层，统一的出口。只在service业务层引入该接口，即可调用各种dao框架的操作接口。")
-                .build();
-
-        boolean b1 = GenCodeUtils.containsJavaFile(providerOutputDir, basePackage().concat(".dao"), daoName);
-        if (!b1) { //不存在，生成代码
-            daoJavaFile.writeTo(System.out); //输出到控制台
-            File file1 = new File(providerOutputDir); //输出到文件
-            daoJavaFile.writeTo(file1);
+        boolean b3 = GenCodeUtils.containsJavaFile(providerOutputDir, basePackage().concat(".dao"), daoName);
+        if (!b3) { //不存在，生成代码
+            TypeSpec dao = TypeSpec.interfaceBuilder(daoName)
+                    .addSuperinterface(ptn3)
+                    .addModifiers(Modifier.PUBLIC)
+                    .addJavadoc("JDBC,JOOQ操作表")
+                    .build();
+            outputJavaFileToPackage(daoPackage, dao, "数据库操作层，统一的出口。只在service业务层引入该接口，即可调用各种dao框架的操作接口。");
         }
         //============生成Dao接口 end
 
@@ -345,22 +364,18 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
         ClassName repositoryClazzName = ClassName.get("org.springframework.stereotype", "Repository");
 
         String daoImplName = clazzName.concat("DaoImpl");
-        TypeSpec daoImpl = TypeSpec.classBuilder(daoImplName)
-                .superclass(ptn4)
-                .addSuperinterface(daoClazzName)
-                .addAnnotation(slf4jClazzName)
-                .addAnnotation(repositoryClazzName)
-                .addModifiers(Modifier.PUBLIC)
-                .build();
-
         String daoImplPackagePath = daoPackage.concat(".").concat("impl");
-        JavaFile daoImplJavaFile = JavaFile.builder(daoImplPackagePath, daoImpl)
-                .build();
-        boolean b2 = GenCodeUtils.containsJavaFile(providerOutputDir, daoImplPackagePath, daoImplName);
-        if (!b2) { //不存在，生成代码
-            daoImplJavaFile.writeTo(System.out); //输出到控制台
-            File file2 = new File(providerOutputDir); //输出到文件
-            daoImplJavaFile.writeTo(file2);
+
+        boolean b4 = GenCodeUtils.containsJavaFile(providerOutputDir, daoImplPackagePath, daoImplName);
+        if (!b4) { //不存在，生成代码
+            TypeSpec daoImpl = TypeSpec.classBuilder(daoImplName)
+                    .superclass(ptn4)
+                    .addSuperinterface(daoClazzName)
+                    .addAnnotation(slf4jClazzName)
+                    .addAnnotation(repositoryClazzName)
+                    .addModifiers(Modifier.PUBLIC)
+                    .build();
+            outputJavaFileToPackage(daoImplPackagePath, daoImpl, "数据操作层，只需要在service中注入该对象即可调用各种方式CURD。");
         }
         //============生成Dao接口的实现类 end
     }
@@ -373,6 +388,22 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latestSupported();
+    }
+
+    /**
+     * 输出java文件到对应包。
+     * @param typeSpec java类对象。
+     * @param packagePath 包路径。
+     * @param fileComment java类说明。
+     */
+    private void outputJavaFileToPackage(String packagePath, TypeSpec typeSpec, String fileComment) throws IOException {
+        JavaFile javaFile = JavaFile.builder(packagePath, typeSpec)
+                .addFileComment(fileComment)
+                .build();
+
+        javaFile.writeTo(System.out); //输出到控制台
+        File file = new File(providerOutputDir); //输出到文件
+        javaFile.writeTo(file);
     }
 
 }
