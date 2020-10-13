@@ -245,27 +245,8 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
      */
     private void genDao(String clazzName) throws IOException {
         //==============生成 jpa Repository start
-        ClassName superClassBR = ClassName.get(BaseRepository.class);
-        ClassName superJpa = ClassName.get("org.springframework.data.jpa.repository", "JpaSpecificationExecutor");
-        //处理继承以及泛型
-        ClassName entityClazzName = ClassName.get(entitiesPackage, clazzName); //泛型
-        ClassName idClazzName = ClassName.get("java.lang", "Long"); //泛型
-        ParameterizedTypeName ptn1 = ParameterizedTypeName.get(superClassBR, entityClazzName, idClazzName);
-        ParameterizedTypeName ptn2 = ParameterizedTypeName.get(superJpa, entityClazzName);
-
         String repositoryName = clazzName.concat("Repository"); //jpa repository类名称
         String repositoryPackagePath = daoPackage.concat(".repository");//jpa repository所在包
-
-        boolean b = GenCodeUtils.containsJavaFile(providerOutputDir, repositoryPackagePath, repositoryName);
-        if (!b) { //不存在，生成代码
-            TypeSpec jpaRepository = TypeSpec.interfaceBuilder(repositoryName)
-                    .addSuperinterface(ptn1)
-                    .addSuperinterface(ptn2)
-                    .addModifiers(Modifier.PUBLIC)
-                    .addJavadoc("增、删、改、简单单表查询")
-                    .build();
-            outputJavaFileToPackage(repositoryPackagePath, jpaRepository, "JPA操作表");
-        }
 
         //////////// 生成 repositoryCustom repositoryImpl
         String repositoryCustomName = repositoryName.concat("Custom"); //jpa repositoryCustom类名称
@@ -279,10 +260,9 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
         }
 
         String repositoryCustomImplName = repositoryName.concat("Impl"); //jpa repositoryImpl类名称
+        ClassName repositoryCustomInterface = ClassName.get(repositoryPackagePath, repositoryCustomName); // 接口
         boolean b12 = GenCodeUtils.containsJavaFile(providerOutputDir, repositoryPackagePath, repositoryCustomImplName);
         if (!b12) {
-            ClassName repositoryCustomInterface = ClassName.get(repositoryPackagePath, repositoryCustomName); // 接口
-
             // 成员变量引入
             //注解
             AnnotationSpec autowired = AnnotationSpec.builder(Autowired.class).build();
@@ -301,6 +281,25 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
             outputJavaFileToPackage(repositoryPackagePath, jpaRepositoryCustomImpl, "");
         }
 
+        // 生成 JPA Repository
+        ClassName superClassBR = ClassName.get(BaseRepository.class);
+        ClassName superJpa = ClassName.get("org.springframework.data.jpa.repository", "JpaSpecificationExecutor");
+        //处理继承以及泛型
+        ClassName entityClazzName = ClassName.get(entitiesPackage, clazzName); //泛型
+        ClassName idClazzName = ClassName.get("java.lang", "Long"); //泛型
+        ParameterizedTypeName ptn1 = ParameterizedTypeName.get(superClassBR, entityClazzName, idClazzName);
+        ParameterizedTypeName ptn2 = ParameterizedTypeName.get(superJpa, entityClazzName);
+        boolean b = GenCodeUtils.containsJavaFile(providerOutputDir, repositoryPackagePath, repositoryName);
+        if (!b) { //不存在，生成代码
+            TypeSpec jpaRepository = TypeSpec.interfaceBuilder(repositoryName)
+                    .addSuperinterface(ptn1)
+                    .addSuperinterface(ptn2)
+                    .addSuperinterface(repositoryCustomInterface)
+                    .addModifiers(Modifier.PUBLIC)
+                    .addJavadoc("增、删、改、简单单表查询")
+                    .build();
+            outputJavaFileToPackage(repositoryPackagePath, jpaRepository, "JPA操作表");
+        }
 
         //==============生成 jpa Repository end
 
