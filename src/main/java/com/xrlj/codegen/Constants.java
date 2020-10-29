@@ -9,6 +9,19 @@ public interface Constants {
         return URL_PREFIX.concat(tableName).concat(URL_SUFFIX);
     }
 
+    interface ServiceEBook {
+        String projectName = "service-ebook";
+        String projectPackage = "com.xrlj.serviceebook";
+        String apiModuleName = getModuleName(projectName, "api");
+        String entitiesModuleName = getModuleName(projectName, "entities");
+        String providerModuleName = getModuleName(projectName, "provider");
+
+        String DRIVER = "com.mysql.cj.jdbc.Driver";
+        String URL = Constants.db_url("service_ebook");
+        String USERNAME = "root";
+        String PASSWORD = "123456";
+    }
+
     interface Servicesyscommon {
 
         String projectName = "service-sys-common";
