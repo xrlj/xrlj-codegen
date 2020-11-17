@@ -11,6 +11,8 @@ import com.xrlj.framework.dao.base.BaseMapper;
 import com.xrlj.framework.dao.base.BaseRepository;
 import com.xrlj.utils.StringUtil;
 import org.apache.commons.io.FileUtils;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
@@ -115,6 +117,7 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
 
     /**
      * 生成api代码类。
+     *
      * @param clazzName
      * @throws IOException
      */
@@ -146,6 +149,7 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
 
     /**
      * 生成api实现，即生成Controller。
+     *
      * @param clazzName
      */
     private void genController(String clazzName) throws IOException {
@@ -159,7 +163,7 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
         ClassName baseController = ClassName.get(BaseController.class); //集成父类
         ClassName implApi = ClassName.get(apiPackage, clazzName.concat("Api")); //实现接口
         //注解
-        ClassName slf4jClazzName = ClassName.get("lombok.extern.slf4j","Slf4j");
+        ClassName slf4jClazzName = ClassName.get("lombok.extern.slf4j", "Slf4j");
         ClassName refreshScope = ClassName.get("org.springframework.cloud.context.config.annotation", "RefreshScope");
 
         TypeSpec controller = TypeSpec.classBuilder(controllerName)
@@ -180,6 +184,7 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
 
     /**
      * 生成service包下面内容
+     *
      * @param clazzName
      */
     private void genService(String clazzName) throws IOException {
@@ -237,10 +242,41 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
             File file = new File(providerOutputDir);  //输出到文件
             serviceImplJavaFile.writeTo(file);
         }
+
+        // 生产dto转换接口
+        String mappingClazzName = clazzName.concat("Mapping");
+        String mappingPackage = servicePackage.concat(".mapping");
+        boolean existMapping = GenCodeUtils.containsJavaFile(providerOutputDir, mappingPackage, mappingClazzName);
+        if (!existMapping) {
+            //初始化成员变量
+            ClassName mappingClazz1 = ClassName.get(mappingPackage, mappingClazzName);
+            CodeBlock codeBlock = CodeBlock.builder()
+                    .addStatement("$T.getMapper($T.class)", Mappers.class, mappingClazz1)
+                    .build();
+            FieldSpec fieldSpec = FieldSpec.builder(mappingClazz1, "INSTANCE", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                    .initializer(codeBlock)
+                    .build();
+
+            //定义接口
+            TypeSpec mappingClazz = TypeSpec.interfaceBuilder(mappingClazzName)
+                    .addAnnotation(Mapper.class)
+                    .addModifiers(Modifier.PUBLIC)
+                    .addField(fieldSpec)
+                    .addJavadoc("实体-DTO 互相转换接口")
+                    .build();
+
+            JavaFile mappingJavaFile = JavaFile.builder(mappingPackage, mappingClazz)
+                    .addFileComment("自动生成。")
+                    .build();
+            mappingJavaFile.writeTo(System.out); //输出到控制台
+            File file = new File(providerOutputDir);  //输出到文件
+            mappingJavaFile.writeTo(file);
+        }
     }
 
     /**
      * 生成dao包下面内容。
+     *
      * @param clazzName
      */
     private void genDao(String clazzName) throws IOException {
@@ -328,10 +364,10 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
             List<String> list = new ArrayList<>();
             list.add("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
             list.add("<!DOCTYPE mapper PUBLIC \"-//mybatis.org//DTD Mapper 3.0//EN\" \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\" >");
-            list.add("<mapper namespace=\""+mapperPackagePath.concat(".").concat(mapperName)+"\" >");
+            list.add("<mapper namespace=\"" + mapperPackagePath.concat(".").concat(mapperName) + "\" >");
             list.add("\r");
             list.add("</mapper>");
-            FileUtils.writeLines(mapperXmlNameFile,list);
+            FileUtils.writeLines(mapperXmlNameFile, list);
         }
         //===========生成 MyBatis mapper end
 
@@ -391,7 +427,8 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
 
     /**
      * 输出java文件到对应包。
-     * @param typeSpec java类对象。
+     *
+     * @param typeSpec    java类对象。
      * @param packagePath 包路径。
      * @param fileComment java类说明。
      */
