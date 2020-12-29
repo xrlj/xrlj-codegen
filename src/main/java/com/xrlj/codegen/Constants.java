@@ -22,6 +22,32 @@ public interface Constants {
         String PASSWORD = "123456";
     }
 
+    interface ServiceAbsProduct {
+        String projectName = "service-abs-product";
+        String projectPackage = "com.xrlj.serviceabsproduct";
+        String apiModuleName = getModuleName(projectName, "api");
+        String entitiesModuleName = getModuleName(projectName, "entities");
+        String providerModuleName = getModuleName(projectName, "provider");
+
+        String DRIVER = "com.mysql.cj.jdbc.Driver";
+        String URL = Constants.db_url("service_abs_product");
+        String USERNAME = "root";
+        String PASSWORD = "123456";
+    }
+
+    interface ServiceAbsPayment {
+        String projectName = "service-abs-payment";
+        String projectPackage = "com.xrlj.serviceabspayment";
+        String apiModuleName = getModuleName(projectName, "api");
+        String entitiesModuleName = getModuleName(projectName, "entities");
+        String providerModuleName = getModuleName(projectName, "provider");
+
+        String DRIVER = "com.mysql.cj.jdbc.Driver";
+        String URL = Constants.db_url("service_abs_payment");
+        String USERNAME = "root";
+        String PASSWORD = "123456";
+    }
+
     interface Servicesyscommon {
 
         String projectName = "service-sys-common";
