@@ -2,7 +2,7 @@ package com.xrlj.codegen;
 
 public interface Constants {
 
-    String URL_PREFIX = "jdbc:mysql://xrlj-server-dev:3910/";
+    String URL_PREFIX = "jdbc:mysql://xrlj-server:3910/";
     String URL_SUFFIX = "?useUnicode=true&characterEncoding=utf8";
 
     static  String db_url(String tableName) {
