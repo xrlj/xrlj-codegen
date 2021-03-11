@@ -109,11 +109,14 @@ public abstract class AbstractGenApiImplProcessor extends AbstractProcessor {
                                 ClassName slf4jClazzName = ClassName.get("lombok.extern.slf4j", "Slf4j");
                                 //注解
                                 ClassName serviceClazzName = ClassName.get("org.springframework.stereotype", "Service");
+                                //注解
+                                ClassName refreshScope = ClassName.get("org.springframework.cloud.context.config.annotation", "RefreshScope");
                                 TypeSpec serviceImpl = TypeSpec.classBuilder(serviceImplName)
                                         .superclass(baseServiceImpl)
                                         .addSuperinterface(serviceInterface)
                                         .addAnnotation(slf4jClazzName)
                                         .addAnnotation(serviceClazzName)
+                                        .addAnnotation(refreshScope)
                                         .addModifiers(Modifier.PUBLIC)
                                         .addJavadoc("接口实现")
                                         .build();
