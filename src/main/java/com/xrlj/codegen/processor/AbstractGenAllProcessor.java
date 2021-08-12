@@ -2,6 +2,7 @@ package com.xrlj.codegen.processor;
 
 import com.squareup.javapoet.*;
 import com.xrlj.framework.base.BaseController;
+import com.xrlj.framework.base.BasePatchService;
 import com.xrlj.framework.base.BaseService;
 import com.xrlj.framework.base.BaseServiceImpl;
 import com.xrlj.framework.core.annotation.GenAllAnnotation;
@@ -196,8 +197,14 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
             ClassName entityClazzName = ClassName.get(entitiesPackage, clazzName);
             ParameterizedTypeName ptn = ParameterizedTypeName.get(baseService, entityClazzName);
 
+            ClassName basePatchService = ClassName.get(BasePatchService.class);
+            ClassName entityClazzName1 = ClassName.get(entitiesPackage, clazzName);
+            ClassName daoClazzName1 = ClassName.get(daoPackage, clazzName.concat("Dao"));
+            ParameterizedTypeName ptn1 = ParameterizedTypeName.get(basePatchService, daoClazzName1, entityClazzName1);
+
             TypeSpec service = TypeSpec.interfaceBuilder(serviceName)
                     .addSuperinterface(ptn)
+                    .addSuperinterface(ptn1)
                     .addModifiers(Modifier.PUBLIC)
                     .addJavadoc("服务接口")
                     .build();
@@ -308,9 +315,17 @@ public abstract class AbstractGenAllProcessor extends AbstractProcessor {
                     .addAnnotation(persistenceContext)
                     .addModifiers(Modifier.PRIVATE)
                     .build();
+
+            ClassName className = ClassName.get(repositoryPackagePath, repositoryName);
+            FieldSpec fieldSpec1 = FieldSpec.builder(className, "repository")
+                    .addAnnotation(autowired)
+                    .addModifiers(Modifier.PRIVATE)
+                    .build();
+
             TypeSpec jpaRepositoryCustomImpl = TypeSpec.classBuilder(repositoryCustomImplName)
                     .addSuperinterface(repositoryCustomInterface)
                     .addField(fieldSpec)
+                    .addField(fieldSpec1)
                     .addModifiers(Modifier.PUBLIC)
                     .addJavadoc("实现类")
                     .build();
